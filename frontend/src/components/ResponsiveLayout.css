@@ -1,0 +1,926 @@
+/* Responsive Layout cho Mobile */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mobile-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--yahoo-primary);
+  border-top: 1px solid var(--yahoo-border);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.mobile-navbar-menu {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.mobile-navbar-menu .ant-menu-item {
+  margin: 0 !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  flex: 1 !important;
+  text-align: center !important;
+  max-width: 60px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mobile-navbar-menu .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mobile-navbar-menu .ant-menu-item-selected {
+  background-color: white !important;
+  color: var(--yahoo-primary) !important;
+}
+
+/* Theme Toggle Styles */
+.theme-toggle {
+  color: white !important;
+  border: none !important;
+  background: transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.navbar-theme-toggle {
+  color: white !important;
+}
+
+.mobile-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.mobile-navbar-theme-toggle {
+  color: white !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 4px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+.mobile-navbar-theme-toggle:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dark Mode CSS Variables */
+:root {
+  --yahoo-bg: #ffffff;
+  --yahoo-bg-secondary: #f8f9fa;
+  --yahoo-text: #1a1a1a;
+  --yahoo-text-secondary: #666666;
+  --yahoo-border: #e1e5e9;
+  --yahoo-primary: #7206f7;
+  --yahoo-primary-hover: #5a05c7;
+  --yahoo-success: #52c41a;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --yahoo-bg: #1f1f1f;
+  --yahoo-bg-secondary: #2d2d2d;
+  --yahoo-text: #ffffff;
+  --yahoo-text-secondary: #b0b0b0;
+  --yahoo-border: #404040;
+}
+
+/* Dark Mode Specific Styles */
+.dark .mobile-chat-layout {
+  background: var(--yahoo-bg);
+}
+
+.dark .mobile-recent-chats {
+  background: var(--yahoo-bg);
+}
+
+.dark .mobile-search-header {
+  background: var(--yahoo-bg);
+  border-bottom-color: var(--yahoo-border);
+}
+
+.dark .mobile-chat-list {
+  background: var(--yahoo-bg);
+}
+
+.dark .mobile-chat-item {
+  border-bottom-color: var(--yahoo-border);
+}
+
+.dark .mobile-chat-item:hover {
+  background-color: var(--yahoo-bg-secondary);
+}
+
+.dark .mobile-chat-view {
+  background: var(--yahoo-bg-secondary);
+}
+
+.dark .mobile-chat-header {
+  background: var(--yahoo-bg);
+  border-bottom-color: var(--yahoo-border);
+}
+
+.dark .messages-container {
+  background: var(--yahoo-bg-secondary);
+}
+
+.dark .mobile-chat-input {
+  background: var(--yahoo-bg);
+  border-top-color: var(--yahoo-border);
+}
+
+.dark .mobile-message-bubble.received {
+  background: var(--yahoo-bg);
+  border-color: var(--yahoo-border);
+  color: var(--yahoo-text);
+}
+
+.dark .mobile-message-input {
+  background: var(--yahoo-bg);
+  border-color: var(--yahoo-border);
+  color: var(--yahoo-text);
+}
+
+.dark .mobile-message-input::placeholder {
+  color: var(--yahoo-text-secondary);
+}
+
+/* Dark Mode Navbar */
+.dark .mobile-navbar {
+  background: var(--yahoo-primary);
+  border-top-color: var(--yahoo-border);
+}
+
+.dark .app-navbar {
+  background: var(--yahoo-primary);
+  border-right-color: var(--yahoo-border);
+}
+
+/* Dark Mode Menu Items */
+.dark .mobile-navbar-menu .ant-menu-item {
+  color: white !important;
+}
+
+.dark .mobile-navbar-menu .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .mobile-navbar-menu .ant-menu-item-selected {
+  background-color: white !important;
+  color: var(--yahoo-primary) !important;
+}
+
+.mobile-content {
+  flex: 1;
+  overflow: hidden;
+  margin-bottom: 60px;
+}
+
+.mobile-chat-list {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--yahoo-bg);
+}
+
+.mobile-chat-area {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--yahoo-bg-secondary);
+}
+
+.mobile-chat-header {
+  padding: 12px 16px;
+  background: var(--yahoo-bg);
+  border-bottom: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.mobile-chat-input {
+  padding: 12px 16px;
+  background: var(--yahoo-bg);
+  border-top: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-chat-input .ant-input {
+  flex: 1;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.mobile-chat-input .ant-btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+}
+
+.mobile-search-bar {
+  padding: 12px 16px;
+  background: var(--yahoo-bg);
+  border-bottom: 1px solid var(--yahoo-border);
+}
+
+.mobile-search-bar .ant-input-search {
+  width: 100%;
+}
+
+.mobile-chat-item {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--yahoo-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-chat-item:hover {
+  background-color: var(--yahoo-bg-secondary);
+}
+
+.mobile-chat-item.selected {
+  background-color: var(--yahoo-bg-secondary);
+  border-left: 3px solid var(--yahoo-primary);
+}
+
+.mobile-chat-item .ant-avatar {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.mobile-chat-item .chat-info {
+  margin-left: 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mobile-chat-item .chat-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--yahoo-text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-chat-item .chat-message {
+  font-size: 13px;
+  color: var(--yahoo-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-chat-item .chat-time {
+  font-size: 11px;
+  color: var(--yahoo-text-secondary);
+  margin-left: 8px;
+}
+
+.mobile-message-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+.mobile-message-sent {
+  background: var(--yahoo-primary);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+  align-self: flex-end;
+}
+
+.mobile-message-received {
+  background: white;
+  color: var(--yahoo-text);
+  border-radius: 18px 18px 18px 4px;
+  border: 1px solid var(--yahoo-border);
+  align-self: flex-start;
+}
+
+.mobile-message-time {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.mobile-message-sender {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--yahoo-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* Mobile Modal Styles */
+.mobile-modal .ant-modal {
+  margin: 16px;
+  max-width: calc(100vw - 32px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mobile-modal .ant-modal-content {
+  border-radius: 12px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.mobile-modal .ant-modal-header {
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
+}
+
+.mobile-modal .ant-modal-body {
+  padding: 20px;
+}
+
+.mobile-modal .ant-modal-footer {
+  border-radius: 0 0 12px 12px;
+  padding: 16px 20px;
+}
+
+/* Mobile Form Styles */
+.mobile-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.mobile-form .ant-input,
+.mobile-form .ant-select-selector {
+  height: 44px;
+  font-size: 16px;
+}
+
+.mobile-form .ant-btn {
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+/* Mobile Post Styles */
+.mobile-post-card {
+  margin: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-post-card .ant-card-body {
+  padding: 16px;
+}
+
+.mobile-post-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  border-top: 1px solid var(--yahoo-border);
+  margin-top: 12px;
+}
+
+.mobile-post-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--yahoo-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mobile-post-action:hover {
+  color: var(--yahoo-primary);
+  background-color: var(--yahoo-bg-secondary);
+}
+
+/* Mobile Contact Styles */
+.mobile-contact-item {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-contact-item .ant-avatar {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.mobile-contact-info {
+  flex: 1;
+}
+
+.mobile-contact-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--yahoo-text);
+  margin-bottom: 2px;
+}
+
+.mobile-contact-status {
+  font-size: 12px;
+  color: var(--yahoo-text-secondary);
+}
+
+/* Mobile Group Styles */
+.mobile-group-item {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-group-item .ant-avatar {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.mobile-group-info {
+  flex: 1;
+}
+
+.mobile-group-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--yahoo-text);
+  margin-bottom: 2px;
+}
+
+.mobile-group-members {
+  font-size: 12px;
+  color: var(--yahoo-text-secondary);
+}
+
+/* Mobile Utility Classes */
+.mobile-hidden {
+  display: none !important;
+}
+
+.mobile-visible {
+  display: block !important;
+}
+
+.mobile-text-center {
+  text-align: center !important;
+}
+
+.mobile-text-left {
+  text-align: left !important;
+}
+
+.mobile-text-right {
+  text-align: right !important;
+}
+
+.mobile-full-width {
+  width: 100% !important;
+}
+
+.mobile-full-height {
+  height: 100% !important;
+}
+
+.mobile-no-margin {
+  margin: 0 !important;
+}
+
+.mobile-no-padding {
+  padding: 0 !important;
+}
+
+.mobile-border-radius {
+  border-radius: 8px !important;
+}
+
+.mobile-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Mobile Animation Classes */
+.mobile-fade-in {
+  animation: mobileFadeIn 0.3s ease-in-out;
+}
+
+.mobile-slide-up {
+  animation: mobileSlideUp 0.3s ease-in-out;
+}
+
+.mobile-slide-down {
+  animation: mobileSlideDown 0.3s ease-in-out;
+}
+
+@keyframes mobileFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobileSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mobileSlideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Mobile Touch Optimizations */
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.mobile-touch-friendly {
+  padding: 12px;
+  margin: 4px;
+}
+
+.mobile-no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Mobile Status Bar */
+.mobile-status-bar {
+  height: 20px;
+  background: var(--yahoo-primary);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+}
+
+/* Mobile Safe Area */
+.mobile-safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile Chat Layout Styles */
+.mobile-chat-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--yahoo-bg);
+  overflow: hidden;
+}
+
+.mobile-recent-chats {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--yahoo-bg);
+}
+
+.mobile-search-header {
+  padding: 16px;
+  background: var(--yahoo-bg);
+  border-bottom: 1px solid var(--yahoo-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-search-input {
+  width: 100%;
+}
+
+.mobile-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mobile-header-btn {
+  color: var(--yahoo-text-secondary) !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-header-btn:hover {
+  color: var(--yahoo-primary) !important;
+  background-color: var(--yahoo-bg-secondary) !important;
+}
+
+.mobile-chat-list {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--yahoo-bg);
+}
+
+.mobile-chat-item {
+  padding: 16px;
+  border-bottom: 1px solid var(--yahoo-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-chat-item:hover {
+  background-color: var(--yahoo-bg-secondary);
+}
+
+.mobile-chat-avatar {
+  background-color: var(--yahoo-bg-secondary) !important;
+  border: 2px solid var(--yahoo-border) !important;
+  flex-shrink: 0;
+}
+
+.mobile-chat-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.mobile-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.mobile-chat-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--yahoo-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-chat-time {
+  font-size: 11px;
+  color: var(--yahoo-text-secondary);
+  flex-shrink: 0;
+}
+
+.mobile-chat-message {
+  font-size: 13px;
+  color: var(--yahoo-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile Chat View Styles */
+.mobile-chat-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--yahoo-bg-secondary);
+}
+
+.mobile-chat-header {
+  padding: 12px 16px;
+  background: var(--yahoo-bg);
+  border-bottom: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-back-btn {
+  color: var(--yahoo-text-secondary) !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-back-btn:hover {
+  color: var(--yahoo-primary) !important;
+  background-color: var(--yahoo-bg-secondary) !important;
+}
+
+.mobile-chat-title {
+  flex: 1;
+  overflow: hidden;
+}
+
+.mobile-chat-status {
+  font-size: 12px;
+  color: var(--yahoo-text-secondary);
+  margin-top: 2px;
+}
+
+.mobile-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--yahoo-bg-secondary);
+}
+
+.mobile-empty-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.mobile-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-message-item {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.mobile-message-item.sent {
+  justify-content: flex-end;
+}
+
+.mobile-message-item.received {
+  justify-content: flex-start;
+}
+
+.mobile-message-avatar {
+  background-color: var(--yahoo-bg-secondary) !important;
+  border: 2px solid var(--yahoo-border) !important;
+  flex-shrink: 0;
+}
+
+.mobile-message-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  word-wrap: break-word;
+}
+
+.mobile-message-bubble.sent {
+  background: var(--yahoo-primary);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.mobile-message-bubble.received {
+  background: white;
+  color: var(--yahoo-text);
+  border-radius: 18px 18px 18px 4px;
+  border: 1px solid var(--yahoo-border);
+}
+
+.mobile-message-sender {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--yahoo-text-secondary);
+  margin-bottom: 4px;
+}
+
+.mobile-message-content {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.mobile-message-time {
+  font-size: 11px;
+  opacity: 0.8;
+  text-align: right;
+}
+
+.mobile-chat-input {
+  padding: 12px 16px;
+  background: var(--yahoo-bg);
+  border-top: 1px solid var(--yahoo-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-attach-btn {
+  color: var(--yahoo-text-secondary) !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mobile-attach-btn:hover {
+  color: var(--yahoo-primary) !important;
+  background-color: var(--yahoo-bg-secondary) !important;
+}
+
+.mobile-message-input {
+  flex: 1;
+  height: 40px;
+  border: 1px solid var(--yahoo-border);
+  border-radius: 8px;
+  background: var(--yahoo-bg);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.mobile-send-btn {
+  background: var(--yahoo-primary) !important;
+  border-color: var(--yahoo-primary) !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  padding: 0 16px !important;
+  color: white !important;
+}
+
+.mobile-send-btn:hover {
+  background: var(--yahoo-primary-hover) !important;
+  border-color: var(--yahoo-primary-hover) !important;
+}
+
+.mobile-send-btn:disabled {
+  background: var(--yahoo-text-secondary) !important;
+  border-color: var(--yahoo-text-secondary) !important;
+  color: white !important;
+}
+
+/* Mobile Navbar Menu Styles */
+.mobile-navbar-menu {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.mobile-navbar-menu .ant-menu-item {
+  margin: 0 !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  flex: 1 !important;
+  text-align: center !important;
+  max-width: 60px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mobile-navbar-menu .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mobile-navbar-menu .ant-menu-item-selected {
+  background-color: white !important;
+  color: var(--yahoo-primary) !important;
+} 

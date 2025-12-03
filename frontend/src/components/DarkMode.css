@@ -1,0 +1,61 @@
+/* Dark Mode Specific Styles */
+.dark {
+  /* Background colors */
+  --yahoo-bg: #0f0f0f;
+  --yahoo-bg-secondary: #1a1a1a;
+  --yahoo-bg-tertiary: #2d2d2d;
+  
+  /* Text colors */
+  --yahoo-text:  #1a1a1a;
+  --yahoo-text-secondary: #b0b0b0;
+  --yahoo-text-tertiary: #545353;
+  
+  /* Border colors */
+  --yahoo-border: #404040;
+  --yahoo-border-light: #2a2a2a;
+  
+  /* Shadow colors */
+  --yahoo-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --yahoo-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.2);
+  
+  /* Overlay colors */
+  --yahoo-overlay: rgba(0, 0, 0, 0.7);
+  
+  /* Component backgrounds */
+  --yahoo-card-bg: #1f1f1f;
+  --yahoo-input-bg: #2a2a2a;
+  --yahoo-hover-bg: #2d2d2d;
+}
+
+/* Dark mode specific component overrides */
+.dark .ant-card {
+  background-color: var(--yahoo-card-bg) !important;
+  border-color: var(--yahoo-border) !important;
+}
+
+.dark .ant-input {
+  background-color: var(--yahoo-input-bg) !important;
+  border-color: var(--yahoo-border) !important;
+  color: var(--yahoo-text) !important;
+}
+
+.dark .ant-modal-content {
+  background-color: var(--yahoo-card-bg) !important;
+  color: var(--yahoo-text) !important;
+}
+
+.dark .ant-menu-item:hover {
+  background-color: var(--yahoo-hover-bg) !important;
+}
+
+.dark .glass-effect {
+  background: rgba(31, 31, 31, 0.8);
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease-in-out, 
+              color 0.3s ease-in-out, 
+              border-color 0.3s ease-in-out,
+              box-shadow 0.3s ease-in-out;
+} 
