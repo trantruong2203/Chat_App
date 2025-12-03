@@ -1,0 +1,625 @@
+ /* Mobile Components Styles */
+
+/* Mobile Chat List */
+.mobile-chat-list-container {
+    height: 100%;
+    overflow-y: auto;
+    background: var(--yahoo-bg);
+  }
+  
+  .mobile-chat-list-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--yahoo-border);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .mobile-chat-list-item:hover {
+    background-color: var(--yahoo-bg-secondary);
+  }
+  
+  .mobile-chat-list-item.selected {
+    background-color: var(--yahoo-bg-secondary);
+    border-left: 3px solid var(--yahoo-primary);
+  }
+  
+  .mobile-chat-list-item .ant-avatar {
+    min-width: 48px;
+    min-height: 48px;
+    margin-right: 12px;
+  }
+  
+  .mobile-chat-list-item .chat-info {
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  .mobile-chat-list-item .chat-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .mobile-chat-list-item .chat-message {
+    font-size: 13px;
+    color: var(--yahoo-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .mobile-chat-list-item .chat-time {
+    font-size: 11px;
+    color: var(--yahoo-text-secondary);
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+  
+  /* Mobile Search Bar */
+  .mobile-search-container {
+    padding: 12px 16px;
+    background: var(--yahoo-bg);
+    border-bottom: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-search-container .ant-input-search {
+    width: 100%;
+  }
+  
+  .mobile-search-container .ant-input {
+    height: 44px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  
+  /* Mobile Action Buttons */
+  .mobile-action-buttons {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--yahoo-bg);
+    border: 1px solid var(--yahoo-border);
+    color: var(--yahoo-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-action-button:hover {
+    background: var(--yahoo-bg-secondary);
+    color: var(--yahoo-primary);
+    border-color: var(--yahoo-primary);
+  }
+  
+  /* Mobile Message Area */
+  .mobile-message-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--yahoo-bg-secondary);
+  }
+  
+  .mobile-message-header {
+    padding: 12px 16px;
+    background: var(--yahoo-bg);
+    border-bottom: 1px solid var(--yahoo-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .mobile-message-header .ant-avatar {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .mobile-message-header .header-info {
+    flex: 1;
+  }
+  
+  .mobile-message-header .header-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 2px;
+  }
+  
+  .mobile-message-header .header-status {
+    font-size: 12px;
+    color: var(--yahoo-text-secondary);
+  }
+  
+  .mobile-message-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  
+  .mobile-message-item {
+    display: flex;
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+  
+  .mobile-message-item.sent {
+    justify-content: flex-end;
+  }
+  
+  .mobile-message-item.received {
+    justify-content: flex-start;
+  }
+  
+  .mobile-message-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    position: relative;
+  }
+  
+  .mobile-message-bubble.sent {
+    background: var(--yahoo-primary);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+  }
+  
+  .mobile-message-bubble.received {
+    background: white;
+    color: var(--yahoo-text);
+    border-radius: 18px 18px 18px 4px;
+    border: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-message-content {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-message-time {
+    font-size: 11px;
+    opacity: 0.8;
+    text-align: right;
+  }
+  
+  .mobile-message-sender {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--yahoo-text-secondary);
+    margin-bottom: 4px;
+  }
+  
+  /* Mobile Input Area */
+  .mobile-input-container {
+    padding: 12px 16px;
+    background: var(--yahoo-bg);
+    border-top: 1px solid var(--yahoo-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .mobile-input-container .ant-input {
+    flex: 1;
+    height: 44px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-input-container .ant-btn {
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--yahoo-primary);
+    border-color: var(--yahoo-primary);
+    color: white;
+  }
+  
+  .mobile-input-container .ant-btn:hover {
+    background: var(--yahoo-primary-hover);
+    border-color: var(--yahoo-primary-hover);
+  }
+  
+  .mobile-input-container .ant-btn:disabled {
+    background: var(--yahoo-text-tertiary);
+    border-color: var(--yahoo-text-tertiary);
+    color: var(--yahoo-text-secondary);
+  }
+  
+  /* Mobile Post Components */
+  .mobile-post-container {
+    padding: 16px;
+    background: var(--yahoo-bg);
+    margin: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .mobile-post-header .ant-avatar {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .mobile-post-header .post-info {
+    flex: 1;
+  }
+  
+  .mobile-post-header .post-author {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 2px;
+  }
+  
+  .mobile-post-header .post-time {
+    font-size: 12px;
+    color: var(--yahoo-text-secondary);
+  }
+  
+  .mobile-post-content {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--yahoo-text);
+    margin-bottom: 12px;
+  }
+  
+  .mobile-post-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .mobile-post-actions {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-top: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-post-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--yahoo-text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-post-action:hover {
+    color: var(--yahoo-primary);
+    background-color: var(--yahoo-bg-secondary);
+  }
+  
+  /* Mobile Contact Components */
+  .mobile-contact-container {
+    padding: 16px;
+    background: var(--yahoo-bg);
+    margin: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-contact-item:last-child {
+    border-bottom: none;
+  }
+  
+  .mobile-contact-item .ant-avatar {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .mobile-contact-item .contact-info {
+    flex: 1;
+  }
+  
+  .mobile-contact-item .contact-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 2px;
+  }
+  
+  .mobile-contact-item .contact-status {
+    font-size: 12px;
+    color: var(--yahoo-text-secondary);
+  }
+  
+  /* Mobile Group Components */
+  .mobile-group-container {
+    padding: 16px;
+    background: var(--yahoo-bg);
+    margin: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-group-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--yahoo-border);
+  }
+  
+  .mobile-group-item:last-child {
+    border-bottom: none;
+  }
+  
+  .mobile-group-item .ant-avatar {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .mobile-group-item .group-info {
+    flex: 1;
+  }
+  
+  .mobile-group-item .group-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 2px;
+  }
+  
+  .mobile-group-item .group-members {
+    font-size: 12px;
+    color: var(--yahoo-text-secondary);
+  }
+  
+  /* Mobile Modal Styles */
+  .mobile-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  
+  .mobile-modal-content {
+    background: var(--yahoo-bg);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .mobile-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--yahoo-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .mobile-modal-title {
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--yahoo-text);
+  }
+  
+  .mobile-modal-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--yahoo-text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-modal-close:hover {
+    background: var(--yahoo-bg-secondary);
+    color: var(--yahoo-text);
+  }
+  
+  .mobile-modal-body {
+    padding: 20px;
+  }
+  
+  .mobile-modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--yahoo-border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  
+  /* Mobile Form Styles */
+  .mobile-form-container {
+    padding: 16px;
+  }
+  
+  .mobile-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .mobile-form-label {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--yahoo-text);
+    margin-bottom: 8px;
+  }
+  
+  .mobile-form-input {
+    width: 100%;
+    height: 44px;
+    font-size: 16px;
+    border: 1px solid var(--yahoo-border);
+    border-radius: 8px;
+    padding: 0 12px;
+    background: var(--yahoo-bg);
+    color: var(--yahoo-text);
+  }
+  
+  .mobile-form-input:focus {
+    outline: none;
+    border-color: var(--yahoo-primary);
+    box-shadow: 0 0 0 2px rgba(114, 6, 247, 0.1);
+  }
+  
+  .mobile-form-button {
+    width: 100%;
+    height: 44px;
+    font-size: 16px;
+    background: var(--yahoo-primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-form-button:hover {
+    background: var(--yahoo-primary-hover);
+  }
+  
+  .mobile-form-button:disabled {
+    background: var(--yahoo-text-tertiary);
+    cursor: not-allowed;
+  }
+  
+  /* Mobile Utility Classes */
+  .mobile-text-center {
+    text-align: center;
+  }
+  
+  .mobile-text-left {
+    text-align: left;
+  }
+  
+  .mobile-text-right {
+    text-align: right;
+  }
+  
+  .mobile-full-width {
+    width: 100%;
+  }
+  
+  .mobile-full-height {
+    height: 100%;
+  }
+  
+  .mobile-no-margin {
+    margin: 0;
+  }
+  
+  .mobile-no-padding {
+    padding: 0;
+  }
+  
+  .mobile-border-radius {
+    border-radius: 8px;
+  }
+  
+  .mobile-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Mobile Animation Classes */
+  .mobile-fade-in {
+    animation: mobileFadeIn 0.3s ease-in-out;
+  }
+  
+  .mobile-slide-up {
+    animation: mobileSlideUp 0.3s ease-in-out;
+  }
+  
+  .mobile-slide-down {
+    animation: mobileSlideDown 0.3s ease-in-out;
+  }
+  
+  @keyframes mobileFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes mobileSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes mobileSlideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  /* Mobile Touch Optimizations */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .mobile-touch-friendly {
+    padding: 12px;
+    margin: 4px;
+  }
+  
+  .mobile-no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Mobile Status Bar */
+  .mobile-status-bar {
+    height: 20px;
+    background: var(--yahoo-primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+  }
+  
+  /* Mobile Safe Area */
+  .mobile-safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
