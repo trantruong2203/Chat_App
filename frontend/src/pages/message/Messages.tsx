@@ -5,7 +5,7 @@ import MobileChatLayout from '../../components/MobileChatLayout';
 import AddFriendModal from '../../components/modal/AddFriendModal';
 import AddGroupModal from '../../components/modal/AddGroupModal';
 import NotFriendModal from '../../components/modal/NotFriendModal';
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useMemo } from 'react';
 import type { UserResponse, Message } from '../../interface/UserResponse';
 import { useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../stores/store';
@@ -35,7 +35,6 @@ function Messages() {
     const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
     const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-    const [fullMessages, setFullMessages] = useState<Message[]>([]);
     const [messageContent, setMessageContent] = useState('');
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -170,42 +169,45 @@ function Messages() {
         };
     }, [socket]);
 
-  useEffect(() => {
-    if (handleLastMess) {
-        handleMessageSelection();
-    }
-  }, [handleLastMess,messages]);
-
-
-    const handleMessageSelection = () => {
-         
-        if (!currentUserId) return;
+    // ⚡ Bolt: Memoize the filtered and sorted messages to prevent expensive recalculations on every render.
+    // This useMemo hook ensures that we only re-filter and re-sort the messages list when the
+    // underlying messages array or the selected chat context (currentUserId, handleLastMess) changes.
+    // This significantly improves performance when receiving new messages or switching between chats.
+    const fullMessages = useMemo(() => {
+        if (!currentUserId || !handleLastMess) {
+            return [];
+        }
         const chatGroupId = handleLastMess?.groupid;
         const chatPartnerId = handleLastMess?.senderid === currentUserId ? handleLastMess?.receiverid : handleLastMess?.senderid;
+
+        let filtered;
         if (chatGroupId) {
-            groupMember.some(item => item.userid === currentUserId && item.groupid === chatGroupId);
-            const filteredMessages = messages.filter(message =>
-                message.groupid === chatGroupId
-            );
-            setFullMessages(filteredMessages.sort((a, b) => new Date(a.sentat).getTime() - new Date(b.sentat).getTime()));
+            filtered = messages.filter(message => message.groupid === chatGroupId);
         } else {
-            const filteredMessages = messages.filter(message =>
+            filtered = messages.filter(message =>
                 (message.senderid === currentUserId && message.receiverid === chatPartnerId) ||
                 (message.receiverid === currentUserId && message.senderid === chatPartnerId)
             );
-            setFullMessages(filteredMessages.sort((a, b) => new Date(a.sentat).getTime() - new Date(b.sentat).getTime()));
-        };
-        setSelectedMessage({
-            id: handleLastMess?.id || 0,
-            content: handleLastMess?.content || '',
-            senderid: currentUserId,
-            receiverid: chatPartnerId ?? null,
-            sentat: handleLastMess?.sentat || dayjs().locale('vi').format('YYYY-MM-DD HH:mm:ss'),
-            status: handleLastMess?.status || 1,
-            messageid: handleLastMess?.messageid || 0,
-            groupid: chatGroupId ?? null
-        });
-    };
+        }
+        return filtered.sort((a, b) => new Date(a.sentat).getTime() - new Date(b.sentat).getTime());
+    }, [messages, currentUserId, handleLastMess]);
+
+    useEffect(() => {
+        if (handleLastMess && currentUserId) {
+            const chatGroupId = handleLastMess?.groupid;
+            const chatPartnerId = handleLastMess?.senderid === currentUserId ? handleLastMess?.receiverid : handleLastMess?.senderid;
+            setSelectedMessage({
+                id: handleLastMess?.id || 0,
+                content: handleLastMess?.content || '',
+                senderid: currentUserId,
+                receiverid: chatPartnerId ?? null,
+                sentat: handleLastMess?.sentat || dayjs().locale('vi').format('YYYY-MM-DD HH:mm:ss'),
+                status: handleLastMess?.status || 1,
+                messageid: handleLastMess?.messageid || 0,
+                groupid: chatGroupId ?? null
+            });
+        }
+    }, [handleLastMess, currentUserId]);
 
     const handleSendMessage = async () => {
         if (!messageContent.trim() || !selectedMessage || !currentUserId) return;
@@ -230,16 +232,7 @@ function Messages() {
             await dispatch(sendMessageThunk(newMessage)).unwrap();
             setLoading(false);
             setMessageContent('');
-            const filteredMessages = messages.filter(message =>
-                (message.senderid === currentUserId && message.receiverid === chatPartnerId) ||
-                (message.receiverid === currentUserId && message.senderid === chatPartnerId) ||
-                (message.groupid === groupId)
-            ).sort((a, b) => new Date(a.sentat).getTime() - new Date(b.sentat).getTime());
-            if (filteredMessages.length > 0) {
-                setFullMessages(filteredMessages);
-                dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
-
-            }
+            dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
             setSelectedMessage({
                 ...newMessage,
                 senderid: currentUserId,
@@ -321,7 +314,6 @@ function Messages() {
                         setMessage={setMessageContent}
                         handleSendMessage={handleSendMessage}
                         fullMessages={fullMessages}
-                        handleMessageSelection={handleMessageSelection}
                         groupMember={groupMember}
                         onlineUsers={onlineUsers}
                         loading={loading}
