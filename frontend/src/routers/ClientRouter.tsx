@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { memo, type ReactElement } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Contacts from '../pages/Contacts/Contacts';
 import AddFriendRequest from '../pages/Contacts/AddFriendRequest';
@@ -72,7 +72,10 @@ function ClientRouter(): ReactElement {
   );
 }
 
-export default ClientRouter;
+// ⚡ Bolt: Memoize ClientRouter to prevent unnecessary re-renders when its parent's state changes.
+// Since ClientRouter is a pure component, this avoids re-rendering the entire routing tree
+// when unrelated state (like the user modal visibility) is updated in the Home component.
+export default memo(ClientRouter);
 
 
 
