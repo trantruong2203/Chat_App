@@ -126,4 +126,9 @@ const Navbar: React.FC<{ setIsUserModalOpen: (isUserModalOpen: boolean) => void 
   );
 };
 
-export default Navbar;
+// ⚡ Bolt: Memoize Navbar to prevent unnecessary re-renders.
+// This component was re-rendering whenever its parent component did,
+// because it receives a function prop (`setIsUserModalOpen`) that was
+// being recreated on each parent render. React.memo ensures this
+// component only re-renders if its props actually change.
+export default React.memo(Navbar);
