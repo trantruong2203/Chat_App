@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Avatar,
   Button,
@@ -76,15 +76,15 @@ const PostCard: React.FC<PostCardProps> = React.memo(({
   const isLiked = isFavorite(post.id);
   useSelector((state: RootState) => state.comment);
 
-  const handleLike = () => {
+  const handleLike = useCallback(() => {
     onLike(post.id);
     refreshPostCount(post.id);
-  };
+  }, [onLike, post.id, refreshPostCount]);
 
-  const handleComment = () => {
+  const handleComment = useCallback(() => {
     onComment(post);
     refreshPostCount(post.id);
-  };
+  }, [onComment, post, refreshPostCount]);
 
   return (
     <Card
