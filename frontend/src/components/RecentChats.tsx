@@ -266,4 +266,6 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+// Bolt ⚡: Memoize RecentChats to prevent unnecessary re-renders when props haven't changed.
+// This is a performance optimization to avoid expensive lookups within the component.
+export default React.memo(RecentChats);
