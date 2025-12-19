@@ -1,16 +1,17 @@
-import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import { Input, type GetProps, Tooltip } from 'antd';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
 import { getObjectByEmail, getObjectById } from '../services/respone';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 import { fetchLastMessagesByUserIdThunk } from '../features/messages/messageThunks';
 import { Socket } from 'socket.io-client';
+import ChatItem from './ChatItem';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -46,8 +47,8 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-      if (!accountLogin || !currentUserId) return;
-      dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
+        if (!accountLogin || !currentUserId) return;
+        dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
     }, [accountLogin, currentUserId, dispatch]);
 
     useEffect(() => {
@@ -56,10 +57,10 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         const handleReceiveMessage = (newMessage: Message) => {
             if (newMessage.senderid === currentUserId || newMessage.receiverid === currentUserId || newMessage.groupid) {
                 dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
-                
+
                 if (newMessage.senderid !== currentUserId) {
-                    const conversationKey = newMessage.groupid 
-                        ? `group-${newMessage.groupid}` 
+                    const conversationKey = newMessage.groupid
+                        ? `group-${newMessage.groupid}`
                         : `user-${newMessage.senderid}-${newMessage.receiverid}`;
                     setUnreadMessages(prev => new Set(prev).add(conversationKey));
                 }
@@ -72,7 +73,6 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
             socket.off('receiveMessage', handleReceiveMessage);
         };
     }, [socket, currentUserId, dispatch]);
-
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
@@ -94,6 +94,22 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
         return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
     };
+
+    const handleChatItemClick = useCallback((message: Message) => {
+        setHandleLastMess(message);
+        const conversationKey = message.groupid
+            ? `group-${message.groupid}`
+            : `user-${message.senderid}-${message.receiverid}`;
+        setUnreadMessages(prev => {
+            if (!prev.has(conversationKey)) {
+                return prev;
+            }
+            const newSet = new Set(prev);
+            newSet.delete(conversationKey);
+            return newSet;
+        });
+    }, [setHandleLastMess]);
+
 
     return (
         <div className="recent-chats-container" style={{
@@ -168,13 +184,10 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
                     let isSelected = false;
                     
                     if (selectedMessage) {
-                        // Tạo key duy nhất cho cả group chat và personal chat
                         const getConversationKey = (msg: Message) => {
                             if (msg.groupid) {
-                                // Đối với group chat, sử dụng groupid
                                 return `group-${msg.groupid}`;
                             } else {
-                                // Đối với personal chat, tạo key từ sender và receiver
                                 const partnerId = msg.senderid === currentUserId ? msg.receiverid : msg.senderid;
                                 return `user-${currentUserId}-${partnerId}`;
                             }
@@ -190,75 +203,21 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
                         ? `group-${message.groupid}` 
                         : `user-${message.senderid}-${message.receiverid}`;
                     const hasUnreadMessage = unreadMessages.has(conversationKey);
+                    const chatPartnerName = getChatPartnerName(message);
+                    const chatPartnerAvatar = getChatPartnerAvatar(message);
+                    const online = isUserOnline(message);
 
                     return (
-                        <div key={`${message.groupid ? `group-${message.groupid}` : `user-${message.senderid}-${message.receiverid}`}-${message.sentat}`} style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0px'
-                        }}
-                            onClick={() => {
-                                setHandleLastMess(message);
-                                setUnreadMessages(prev => {
-                                    const newSet = new Set(prev);
-                                    newSet.delete(conversationKey);
-                                    return newSet;
-                                });
-                            }}
-                        >
-                            <div style={{
-                                display: 'flex',
-                                padding: '12px 16px',
-                                backgroundColor: isSelected ? 'var(--yahoo-bg-secondary)' : 'var(--yahoo-bg)',
-                                cursor: 'pointer',
-                                borderBottom: '1px solid var(--yahoo-border)',
-                                transition: 'all 0.2s ease',
-                                borderLeft: isSelected ? '3px solid var(--yahoo-primary)' : '3px solid transparent'
-                            }}
-                                className={`chat-item ${isSelected ? 'selected' : ''}`}
-                            >
-                                <Badge dot color={isUserOnline(message) ? 'var(--yahoo-success)' : 'var(--yahoo-text-secondary)'} offset={[-5, 35]}>
-                                    <Avatar
-                                        size={42}
-                                        icon={<SearchOutlined />}
-                                        src={getChatPartnerAvatar(message)}
-                                        style={{
-                                            backgroundColor: 'var(--yahoo-bg-secondary)',
-                                            border: '2px solid var(--yahoo-border)'
-                                        }}
-                                    />
-                                </Badge>
-                                <div style={{ marginLeft: '12px', flex: 1, overflow: 'hidden' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ 
-                                            fontWeight: hasUnreadMessage ? '600' : '500', 
-                                            color: hasUnreadMessage ? 'var(--yahoo-text)' : 'var(--yahoo-text-secondary)',
-                                            fontSize: '14px'
-                                        }}>
-                                            {getChatPartnerName(message)}
-                                        </span>
-                                        <span style={{ 
-                                            fontSize: '11px', 
-                                            color: 'var(--yahoo-text-secondary)',
-                                            fontWeight: hasUnreadMessage ? '500' : '400'
-                                        }}>
-                                            {dayjs(message.sentat).utcOffset(7).fromNow()}
-                                        </span>
-                                    </div>
-                                    <div style={{
-                                        fontSize: '13px',
-                                        color: hasUnreadMessage ? 'var(--yahoo-text)' : 'var(--yahoo-text-secondary)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        marginTop: '4px',
-                                        fontWeight: hasUnreadMessage ? '500' : '400'
-                                    }}>
-                                        {message.content}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <ChatItem
+                            key={`${message.groupid ? `group-${message.groupid}` : `user-${message.senderid}-${message.receiverid}`}-${message.sentat}`}
+                            message={message}
+                            isSelected={isSelected}
+                            hasUnreadMessage={hasUnreadMessage}
+                            isUserOnline={online}
+                            chatPartnerName={chatPartnerName}
+                            chatPartnerAvatar={chatPartnerAvatar}
+                            onClick={handleChatItemClick}
+                        />
                     );
                 })}
             </div>
