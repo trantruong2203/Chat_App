@@ -1,11 +1,11 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -45,6 +45,32 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // 📊 Impact: Memoizing these maps prevents re-computation on every render.
+    // It transforms O(n) lookups inside the map function into O(1) hash map lookups.
+    const userMap = useMemo(() => {
+        const map = new Map<string | number, UserResponse>();
+        for (const user of items) {
+            map.set(user.id, user);
+        }
+        return map;
+    }, [items]);
+
+    const chatGroupMap = useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(group.id, group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    const onlineUserSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const onlineUser of onlineUsers) {
+            set.add(onlineUser.user.id);
+        }
+        return set;
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -73,27 +99,28 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         };
     }, [socket, currentUserId, dispatch]);
 
-
-    const getChatPartnerName = (message: Message): string | undefined => {
+    // 💡 What: O(1) lookups for chat partner info.
+    // 🎯 Why: Replaces expensive O(n) `find` and `some` calls inside the render loop.
+    const getChatPartnerName = useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return chatGroupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(partnerId ?? '')?.username;
+    }, [chatGroupMap, userMap, currentUserId]);
 
-    const getChatPartnerAvatar = (message: Message): string | undefined => {
+    const getChatPartnerAvatar = useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return chatGroupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(partnerId ?? '')?.avatar;
+    }, [chatGroupMap, userMap, currentUserId]);
 
-    const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
-    };
+    const isUserOnline = useCallback((message: Message): boolean => {
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return !!partnerId && onlineUserSet.has(String(partnerId));
+    }, [onlineUserSet, currentUserId]);
 
     return (
         <div className="recent-chats-container" style={{
@@ -266,4 +293,4 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+export default React.memo(RecentChats);
