@@ -1,11 +1,10 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -36,6 +35,8 @@ interface RecentChatsProps {
     onlineUsers: OnlineUser[];
 }
 
+// ⚡ Bolt: Wrapped RecentChats with React.memo to prevent unnecessary re-renders.
+// This component will only re-render if its props have changed, improving UI performance.
 function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selectedMessage, lastMessages, setHandleLastMess, socket, onlineUsers }: RecentChatsProps): React.ReactElement {
 
     const { items } = useSelector((state: RootState) => state.user);
@@ -44,6 +45,17 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
+
+    // ⚡ Bolt: Memoize user and group data into maps for efficient O(1) lookups.
+    // This prevents expensive Array.find() calls on every re-render,
+    // which is a major performance bottleneck.
+    const userMap = useMemo(() => {
+        return new Map(items.map((user: UserResponse) => [user.id, user]));
+    }, [items]);
+
+    const groupMap = useMemo(() => {
+        return new Map(chatGroup.map((group: ChatGroup) => [group.id, group]));
+    }, [chatGroup]);
 
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
@@ -74,25 +86,35 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
+    const onlineUserSet = useMemo(() => {
+        // ⚡ Bolt: Create a Set of online user IDs for O(1) lookups.
+        // This is much faster than Array.some() on every render.
+        return new Set(onlineUsers.map(onlineUser => String(onlineUser.user.id)));
+    }, [onlineUsers]);
+
+
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return partnerId ? userMap.get(partnerId)?.username : undefined;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return partnerId ? userMap.get(partnerId)?.avatar : undefined;
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) {
+            return false; // Groups don't have a single online/offline status.
+        }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return !!partnerId && onlineUserSet.has(partnerId);
     };
 
     return (
@@ -266,4 +288,4 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+export default React.memo(RecentChats);
