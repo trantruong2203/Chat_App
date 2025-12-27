@@ -1,5 +1,5 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
@@ -45,6 +45,24 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // ⚡ Bolt: Memoize chatGroup and onlineUsers for O(1) lookups inside the map function.
+    // This prevents searching through the entire array on every single render.
+    const chatGroupMap = useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(group.id, group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    const onlineUserSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const onlineUser of onlineUsers) {
+            set.add(String(onlineUser.user.id));
+        }
+        return set;
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -76,7 +94,7 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
+            const group = chatGroupMap.get(message.groupid);
             return group?.name;
         }
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
@@ -84,15 +102,16 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
+            const group = chatGroupMap.get(message.groupid);
             return group?.avatar;
         }
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) return false;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
