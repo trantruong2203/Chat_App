@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -45,6 +45,34 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // ⚡ Bolt: Memoize lookup maps to optimize performance
+    // Creates maps for users and groups, and a set for online users.
+    // This avoids expensive Array.find/Array.some lookups inside the render loop,
+    // improving performance from O(n) to O(1) for each lookup inside the map.
+    const userMap = React.useMemo(() => {
+        const map = new Map<string, UserResponse>();
+        for (const user of items) {
+            map.set(String(user.id), user);
+        }
+        return map;
+    }, [items]);
+
+    const groupMap = React.useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(String(group.id), group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    const onlineUserSet = React.useMemo(() => {
+        const set = new Set<string>();
+        for (const onlineUser of onlineUsers) {
+            set.add(String(onlineUser.user.id));
+        }
+        return set;
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -74,25 +102,28 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
+    // ⚡ Bolt: Use memoized maps for efficient lookups.
+    // These functions now use the pre-computed maps for O(1) lookups,
+    // avoiding expensive searches inside the render loop.
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(String(message.groupid))?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(String(message.groupid))?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
