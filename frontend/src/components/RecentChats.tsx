@@ -1,11 +1,11 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -45,6 +45,21 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // ⚡ Bolt: Memoize lookup maps to optimize performance.
+    // Creates maps for faster lookups inside the message rendering loop,
+    // preventing O(n*m) complexity.
+    const groupMap = useMemo(() => {
+        return new Map(chatGroup.map(group => [group.id, group]));
+    }, [chatGroup]);
+
+    const userMap = useMemo(() => {
+        return new Map(items.map(user => [user.id, user]));
+    }, [items]);
+
+    const onlineUserSet = useMemo(() => {
+        return new Set(onlineUsers.map(onlineUser => String(onlineUser.user.id)));
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -74,26 +89,26 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
-    const getChatPartnerName = (message: Message): string | undefined => {
+    const getChatPartnerName = useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(partnerId)?.username;
+    }, [groupMap, userMap, currentUserId]);
 
-    const getChatPartnerAvatar = (message: Message): string | undefined => {
+    const getChatPartnerAvatar = useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(partnerId)?.avatar;
+    }, [groupMap, userMap, currentUserId]);
 
-    const isUserOnline = (message: Message): boolean => {
+    const isUserOnline = useCallback((message: Message): boolean => {
         const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
-    };
+        return onlineUserSet.has(String(partnerId));
+    }, [onlineUserSet, currentUserId]);
 
     return (
         <div className="recent-chats-container" style={{
