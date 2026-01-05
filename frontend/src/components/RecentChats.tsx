@@ -1,11 +1,10 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -40,8 +39,27 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const { items } = useSelector((state: RootState) => state.user);
     const { accountLogin } = useContext(ContextAuth);
-    const currentUserId = getObjectById(items, accountLogin?.email ?? '')?.id;
     const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
+
+    // ⚡ Bolt: Create memoized maps for O(1) lookups to avoid O(n) searches in the render loop.
+    const userMapById = useMemo(() => {
+        return new Map(items.map(user => [user.id, user]));
+    }, [items]);
+
+    const userMapByEmail = useMemo(() => {
+        return new Map(items.map(user => [user.email, user]));
+    }, [items]);
+
+    const groupMap = useMemo(() => {
+        return new Map(chatGroup.map(group => [group.id, group]));
+    }, [chatGroup]);
+
+    const onlineUserSet = useMemo(() => {
+        return new Set(onlineUsers.map(onlineUser => String(onlineUser.user.id)));
+    }, [onlineUsers]);
+
+    const currentUserId = userMapByEmail.get(accountLogin?.email ?? '')?.id;
+
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
@@ -74,25 +92,33 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
+    // ⚡ Bolt: Replaced O(n) .find() with O(1) Map lookup.
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
+            const group = groupMap.get(message.groupid);
             return group?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMapById.get(partnerId)?.username;
     }
 
+    // ⚡ Bolt: Replaced O(n) .find() with O(1) Map lookup.
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
+            const group = groupMap.get(message.groupid);
             return group?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMapById.get(partnerId)?.avatar;
     }
 
+    // ⚡ Bolt: Replaced O(n) .some() with O(1) Set lookup.
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) {
+            return false;
+        }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
@@ -266,4 +292,5 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+// ⚡ Bolt: Memoize the component to prevent re-renders when props haven't changed.
+export default React.memo(RecentChats);
