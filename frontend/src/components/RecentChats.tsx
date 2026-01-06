@@ -1,11 +1,11 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -38,12 +38,21 @@ interface RecentChatsProps {
 
 function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selectedMessage, lastMessages, setHandleLastMess, socket, onlineUsers }: RecentChatsProps): React.ReactElement {
 
-    const { items } = useSelector((state: RootState) => state.user);
+    const { items: users } = useSelector((state: RootState) => state.user);
     const { accountLogin } = useContext(ContextAuth);
-    const currentUserId = getObjectById(items, accountLogin?.email ?? '')?.id;
-    const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
+    const currentUserId = getObjectById(users, accountLogin?.email ?? '')?.id;
+    const chatGroups = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
+
+    // ⚡ Bolt: Memoize user and group lookups to avoid O(n) searches inside the map function.
+    const userMap = useMemo(() => {
+        return new Map(users.map(user => [user.id, user]));
+    }, [users]);
+
+    const groupMap = useMemo(() => {
+        return new Map(chatGroups.map(group => [group.id, group]));
+    }, [chatGroups]);
 
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
@@ -76,18 +85,18 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMap.get(partnerId)?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMap.get(partnerId)?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
@@ -266,4 +275,4 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+export default React.memo(RecentChats);
