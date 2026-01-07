@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -42,6 +42,34 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const { accountLogin } = useContext(ContextAuth);
     const currentUserId = getObjectById(items, accountLogin?.email ?? '')?.id;
     const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
+
+    // ⚡ Bolt: Memoize user and group data into maps for O(1) lookups.
+    // This prevents expensive O(n) find operations inside the message loop.
+    const userMap = React.useMemo(() => {
+        const map = new Map<string, UserResponse>();
+        for (const user of items) {
+            map.set(String(user.id), user);
+        }
+        return map;
+    }, [items]);
+
+    const groupMap = React.useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(String(group.id), group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    // ⚡ Bolt: Memoize online users into a Set for O(1) lookups.
+    // This prevents an O(n) .some() check inside the message loop.
+    const onlineUserSet = React.useMemo(() => {
+        const set = new Set<string>();
+        for (const onlineUser of onlineUsers) {
+            set.add(String(onlineUser.user.id));
+        }
+        return set;
+    }, [onlineUsers]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
@@ -74,26 +102,29 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
-    const getChatPartnerName = (message: Message): string | undefined => {
+    // ⚡ Bolt: Wrap helper functions in useCallback to prevent re-creation on each render.
+    // These now use the memoized maps for O(1) lookups.
+    const getChatPartnerName = React.useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(String(message.groupid))?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.username;
+    }, [currentUserId, userMap, groupMap]);
 
-    const getChatPartnerAvatar = (message: Message): string | undefined => {
+    const getChatPartnerAvatar = React.useCallback((message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(String(message.groupid))?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
-    }
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.avatar;
+    }, [currentUserId, userMap, groupMap]);
 
-    const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
-    };
+    const isUserOnline = React.useCallback((message: Message): boolean => {
+        if (message.groupid) return false; // Groups can't be "online"
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
+    }, [currentUserId, onlineUserSet]);
 
     return (
         <div className="recent-chats-container" style={{
