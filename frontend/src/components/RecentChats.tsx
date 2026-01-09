@@ -1,5 +1,5 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
@@ -36,7 +36,12 @@ interface RecentChatsProps {
     onlineUsers: OnlineUser[];
 }
 
-function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selectedMessage, lastMessages, setHandleLastMess, socket, onlineUsers }: RecentChatsProps): React.ReactElement {
+const RecentChats: React.FC<RecentChatsProps> = ({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selectedMessage, lastMessages, setHandleLastMess, socket, onlineUsers }) => {
+
+    // ⚡ Bolt: Memoize online user IDs into a Set for O(1) lookups.
+    // This prevents the expensive O(n) `Array.some()` check inside the message loop,
+    // which was running for every message on every render.
+    const onlineUserIds = useMemo(() => new Set(onlineUsers.map(u => u.user.id.toString())), [onlineUsers]);
 
     const { items } = useSelector((state: RootState) => state.user);
     const { accountLogin } = useContext(ContextAuth);
@@ -91,8 +96,9 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        // ⚡ Bolt: O(1) lookup instead of O(n)
+        return onlineUserIds.has(partnerId?.toString() ?? '');
     };
 
     return (
@@ -266,4 +272,4 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+export default React.memo(RecentChats);
