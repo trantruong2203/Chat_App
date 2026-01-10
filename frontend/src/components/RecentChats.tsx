@@ -1,5 +1,5 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
@@ -44,6 +44,12 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
+
+    // ⚡ Bolt: Memoize online user IDs into a Set for O(1) lookup.
+    // This prevents the O(n*m) complexity of calling `onlineUsers.some()` inside the `map` loop.
+    const onlineUserIds = useMemo(() => {
+        return new Set(onlineUsers.map(user => String(user.user.id)));
+    }, [onlineUsers]);
 
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
@@ -91,8 +97,8 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserIds.has(String(partnerId));
     };
 
     return (
