@@ -1,5 +1,5 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
@@ -90,9 +90,13 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
     }
 
+    // ⚡ Bolt: Memoize online users into a Set for O(1) lookups instead of O(n) Array.some() in the render loop.
+    const onlineUserSet = useMemo(() => new Set(onlineUsers.map(u => String(u.user.id))), [onlineUsers]);
+
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) return false; // Groups can't be "online" in the same way as users
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
