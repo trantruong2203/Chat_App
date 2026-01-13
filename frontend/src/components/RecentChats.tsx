@@ -1,5 +1,5 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
@@ -45,6 +45,20 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // ⚡ Bolt: Create memoized lookups to avoid expensive array searches inside the map loop.
+    // This transforms the O(n*m) complexity of finding groups and online users into O(n+m) for setup and O(1) for lookups.
+    const groupMap = useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(group.id, group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    const onlineUserSet = useMemo(() => {
+        return new Set(onlineUsers.map(u => String(u.user.id)));
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -76,23 +90,22 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupMap.get(message.groupid)?.name;
         }
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupMap.get(message.groupid)?.avatar;
         }
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) return false; // Groups can't be "online" in the same way
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
