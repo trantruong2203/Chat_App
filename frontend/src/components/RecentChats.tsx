@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -44,6 +44,9 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
+    const onlineUserSet = React.useMemo(() => new Set(onlineUsers.map(u => String(u.user.id))), [onlineUsers]);
+    const chatGroupMap = React.useMemo(() => new Map(chatGroup.map(g => [g.id, g])), [chatGroup]);
+    const userMap = React.useMemo(() => new Map(items.map(u => [String(u.id), u])), [items]);
 
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
@@ -76,23 +79,23 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return chatGroupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return chatGroupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return userMap.get(String(partnerId))?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
         const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
