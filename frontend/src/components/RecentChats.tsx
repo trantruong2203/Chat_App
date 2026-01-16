@@ -90,10 +90,14 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
     }
 
-    const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
-    };
+    // ⚡ Bolt: Create a memoized Set of online user IDs for efficient O(1) lookups.
+    // This avoids the O(n) `Array.some()` check inside the `map` loop, which can be a bottleneck with many online users.
+    const onlineUserIds = React.useMemo(() => new Set(onlineUsers.map(u => String(u.user.id))), [onlineUsers]);
+
+    const isUserOnline = React.useCallback((message: Message): boolean => {
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUserIds.has(String(partnerId));
+    }, [currentUserId, onlineUserIds]);
 
     return (
         <div className="recent-chats-container" style={{
