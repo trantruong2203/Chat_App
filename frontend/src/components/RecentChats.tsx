@@ -1,11 +1,11 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -37,13 +37,19 @@ interface RecentChatsProps {
 }
 
 function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selectedMessage, lastMessages, setHandleLastMess, socket, onlineUsers }: RecentChatsProps): React.ReactElement {
-
-    const { items } = useSelector((state: RootState) => state.user);
+    const { items: users } = useSelector((state: RootState) => state.user);
     const { accountLogin } = useContext(ContextAuth);
-    const currentUserId = getObjectById(items, accountLogin?.email ?? '')?.id;
-    const chatGroup = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
+    const currentUserId = getObjectById(users, accountLogin?.email ?? '')?.id;
+    const chatGroups = useSelector((state: RootState) => state.chatGroup.items as ChatGroup[]);
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
+
+    // ⚡ Bolt: Memoized lookup maps to optimize rendering of the chat list.
+    // This avoids expensive O(n) `find` or `some` calls inside the loop.
+    const usersMap = useMemo(() => new Map(users.map(user => [user.id, user])), [users]);
+    const groupsMap = useMemo(() => new Map(chatGroups.map(group => [group.id, group])), [chatGroups]);
+    const onlineUsersSet = useMemo(() => new Set(onlineUsers.map(onlineUser => String(onlineUser.user.id))), [onlineUsers]);
+
 
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
@@ -76,23 +82,24 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
 
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return groupsMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return usersMap.get(partnerId ?? 0)?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return groupsMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return usersMap.get(partnerId ?? 0)?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
-        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        if (message.groupid) return false; // Groups can't have a single online status
+        const partnerId = message.receiverid === currentUserId ? message.senderid : message.receiverid;
+        return onlineUsersSet.has(String(partnerId));
     };
 
     return (
@@ -266,4 +273,5 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+const MemoizedRecentChats = React.memo(RecentChats);
+export default MemoizedRecentChats;
