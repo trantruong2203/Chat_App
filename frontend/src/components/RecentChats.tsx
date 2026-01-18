@@ -90,9 +90,12 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
         return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
     }
 
+    // ⚡ Bolt: Create a Set for online users for O(1) lookups instead of O(n) for performance.
+    const onlineUserSet = React.useMemo(() => new Set(onlineUsers.map(u => String(u.user.id))), [onlineUsers]);
+
     const isUserOnline = (message: Message): boolean => {
         const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
