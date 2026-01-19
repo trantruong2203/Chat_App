@@ -1,11 +1,11 @@
 import { Avatar, Input, type GetProps, Badge, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { SearchOutlined, UserAddOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../stores/store';
 import { ContextAuth } from '../contexts/AuthContext';
 import type { Message, ChatGroup, UserResponse } from '../interface/UserResponse';
-import { getObjectByEmail, getObjectById } from '../services/respone';
+import { getObjectById } from '../services/respone';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
@@ -45,6 +45,34 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     const dispatch = useDispatch<AppDispatch>();
     const [unreadMessages, setUnreadMessages] = useState<Set<string>>(new Set());
 
+    // ⚡ Bolt: Memoize lookup maps to avoid expensive searches in the render loop.
+    // Creates a map for O(1) lookup of chat groups by ID.
+    const chatGroupMap = useMemo(() => {
+        const map = new Map<string, ChatGroup>();
+        for (const group of chatGroup) {
+            map.set(group.id, group);
+        }
+        return map;
+    }, [chatGroup]);
+
+    // Creates a map for O(1) lookup of users by ID.
+    const userMap = useMemo(() => {
+        const map = new Map<string, UserResponse>();
+        for (const user of items) {
+            map.set(String(user.id), user);
+        }
+        return map;
+    }, [items]);
+
+    // Creates a set for O(1) lookup of online users by ID.
+    const onlineUserSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const onlineUser of onlineUsers) {
+            set.add(String(onlineUser.user.id));
+        }
+        return set;
+    }, [onlineUsers]);
+
     useEffect(() => {
       if (!accountLogin || !currentUserId) return;
       dispatch(fetchLastMessagesByUserIdThunk(currentUserId));
@@ -74,25 +102,26 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     }, [socket, currentUserId, dispatch]);
 
 
+    // ⚡ Bolt: Use O(1) lookups from memoized maps instead of O(n) array searches.
     const getChatPartnerName = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.name;
+            return chatGroupMap.get(message.groupid)?.name;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.username;
+        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMap.get(String(partnerId))?.username;
     }
 
     const getChatPartnerAvatar = (message: Message): string | undefined => {
         if (message.groupid) {
-            const group = chatGroup.find((group) => group.id === message.groupid);
-            return group?.avatar;
+            return chatGroupMap.get(message.groupid)?.avatar;
         }
-        return getObjectByEmail(items, message.receiverid === currentUserId ? message.senderid : message.receiverid ?? 0)?.avatar;
+        const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid ?? 0;
+        return userMap.get(String(partnerId))?.avatar;
     }
 
     const isUserOnline = (message: Message): boolean => {
         const partnerId = message.receiverid == currentUserId ? message.senderid : message.receiverid;
-        return onlineUsers.some(onlineUser => onlineUser.user.id == partnerId);
+        return onlineUserSet.has(String(partnerId));
     };
 
     return (
@@ -266,4 +295,7 @@ function RecentChats({ setIsAddFriendModalOpen, setIsAddGroupModalOpen, selected
     );
 }
 
-export default RecentChats;
+// ⚡ Bolt: Wrap component in React.memo to prevent unnecessary re-renders.
+// This is a performance optimization that avoids re-rendering the component
+// when its props have not changed.
+export default React.memo(RecentChats);
